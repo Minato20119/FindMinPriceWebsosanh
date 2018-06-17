@@ -1,2 +1,2 @@
 # FindMinPriceWebsosanh
-FindMinPriceWebsosanh
+IDE: Netbeans
