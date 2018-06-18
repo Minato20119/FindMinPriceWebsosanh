@@ -63,11 +63,11 @@ public class searchPro {
                     }
                 }
 
-                singleText = singleText.replaceAll("\\s+", " ").toLowerCase();
-
                 if (singleText.contains("–")) {
                     singleText = singleText.replaceAll("–", " ");
                 }
+                
+                singleText = singleText.replaceAll("\\s+", " ").toLowerCase();
 
                 System.out.println(count++ + ": " + textFromFileTxt);
 
@@ -167,6 +167,8 @@ public class searchPro {
                 textArea += textFromFileTxt + "\n-----------------------------------------> PriceMin: " + defaultPrice + " đ\n";
 
                 builder.append(textArea);
+                
+                break;
             }
         } catch (IOException | NumberFormatException e1) {
             System.out.println("Error Input Text.");
