@@ -14,6 +14,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLEncoder;
@@ -22,7 +24,7 @@ import javax.swing.JOptionPane;
 
 /**
  *
- * @author minat
+ * @author Minato
  */
 public class searchPro {
 
@@ -30,9 +32,13 @@ public class searchPro {
     private static final String REGEX_GET_PRICE_IN_BLOCK = "(class=\"price \">\\s*)([0-9.]+)";
     private static final String REGEX_GET_NUMBER_PAGES = "x=\"";
     private static final String REGEX_GET_NUMBER_PAGES_LAST = "\"class";
+    
+    // set giá nhỏ nhất để bỏ qua nó (chỉ lấy giá từ 500k trở lên)
+    private static final int DEFAULT_PRICE_MIN = 500000;
     static String textArea = "";
+    StringBuilder builder = new StringBuilder();
 
-    public String searchProduct(String linkPathFile) {
+    public StringBuilder searchProduct(String linkPathFile) {
         try {
             FileInputStream fileInPutStream = new FileInputStream(linkPathFile);
             Reader reader = new java.io.InputStreamReader(fileInPutStream, "utf8");
@@ -68,10 +74,17 @@ public class searchPro {
                         encodeSingleText = "https://websosanh.vn/s/" + encodeSingleText;
 
                         String urlText = encodeSingleText + "?pi=" + (String.valueOf(numberPage)) + ".htm";
+                        
+                        System.out.println(urlText);
 
                         URL url = new URL(urlText);
 
                         URLConnection connectURL = url.openConnection();
+                        
+                        
+                        // Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.225.3.1", 3128));
+			// URLConnection connectURL = new URL(urlText).openConnection(proxy);
+                        
 
                         try (BufferedReader inputURL = new BufferedReader(new InputStreamReader(
                                 connectURL.getInputStream()))) {
@@ -88,14 +101,18 @@ public class searchPro {
                             }
                             
                             Pattern pattern = Pattern.compile(REGEX_GET_BLOCK_CONTAINS_PRICE);
-                            Matcher matcher = pattern.matcher(textFromStreamURL);
+                            Matcher matcher = pattern.matcher(textFromStreamURL.toLowerCase());
                             
                             while (matcher.find()) {
                                 // Het Hang
                                 if (matcher.group(0).compareTo("out-of-stock") == 0) {
                                     continue;
                                 }
-                                textBlockContainsPrice += matcher.group(0);
+                                
+                                if (matcher.group(0).contains(singleText) || matcher.group(0).contains(textFromFileTxt.toLowerCase())) {
+                                    textBlockContainsPrice += matcher.group(0);
+                                }
+                                
                             }
                             
                             Pattern pattern1 = Pattern.compile(REGEX_GET_PRICE_IN_BLOCK);
@@ -108,6 +125,10 @@ public class searchPro {
                                 }
                                 // Get price
                                 price = Integer.parseInt(matcher1.group(2).replace(".", ""));
+                                
+                                if (price <= DEFAULT_PRICE_MIN) {
+                                    continue;
+                                }
                                 
                                 if (price < defaultPrice) {
                                     defaultPrice = price;
@@ -132,20 +153,21 @@ public class searchPro {
                 } while (numberPage <= sumPages);
 
                 textArea += textFromFileTxt + "\n-----------------------------------------> PriceMin: " + defaultPrice + " đ\n";
+                
+                builder.append(textArea);
 
             }
-        } catch (Exception e1) {
+        } catch (IOException | NumberFormatException e1) {
             System.out.println("Error Input Text.");
         }
-        return textArea;
+        return builder;
     }
 
     public void output(String linkFIle, String contain) throws IOException {
-        Writer out = new BufferedWriter(new OutputStreamWriter(
-                new FileOutputStream(linkFIle), "UTF-8"));
-
-        out.write(contain);
-        JOptionPane.showMessageDialog(null, "Done");
-        out.close();
+        try (Writer out = new BufferedWriter(new OutputStreamWriter(
+                new FileOutputStream(linkFIle), "UTF-8"))) {
+            out.write(contain);
+            JOptionPane.showMessageDialog(null, "Done");
+        }
     }
 }
