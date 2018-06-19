@@ -91,10 +91,10 @@ public class SearchProFinal {
 
                     String urlText = encodeSingleText + "?pi=" + (String.valueOf(numberPage)) + ".htm";
 
-//                        URL url = new URL(urlText);
-//                        URLConnection connectURL = url.openConnection();
-                    Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("10.225.3.1", 3128));
-                    URLConnection connectURL = new URL(urlText).openConnection(proxy);
+                       URL url = new URL(urlText);
+                       URLConnection connectURL = url.openConnection();
+//                     Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress("", 1234));
+//                     URLConnection connectURL = new URL(urlText).openConnection(proxy);
 
                     try (BufferedReader inputURL = new BufferedReader(new InputStreamReader(
                             connectURL.getInputStream(), StandardCharsets.UTF_8))) {
